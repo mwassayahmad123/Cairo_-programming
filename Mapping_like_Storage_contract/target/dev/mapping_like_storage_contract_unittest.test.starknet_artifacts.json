@@ -1,0 +1,1 @@
+{"version":1,"contracts":[{"id":"5ncu791ilvo3g","package_name":"mapping_like_storage_contract","contract_name":"GradeBook","module_path":"mapping_like_storage_contract::GradeBook","artifacts":{"sierra":"mapping_like_storage_contract_unittest_GradeBook.test.contract_class.json","casm":null}}]}

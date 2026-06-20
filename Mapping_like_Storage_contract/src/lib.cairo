@@ -3,6 +3,8 @@
 //  CONTRACT: GradeBook — A Student Grade Management System
 // ===========================================================
 
+#[feature("deprecated_legacy_map")]
+#[feature("deprecated-starknet-consts")]
 
 #[starknet::interface]
 trait IGradeBook<TContractState> {
@@ -53,6 +55,10 @@ mod GradeBook {
 
     use starknet::ContractAddress;
     use starknet::get_caller_address;
+    use starknet::storage::{
+        StorageMapReadAccess, StorageMapWriteAccess, StoragePointerReadAccess,
+        StoragePointerWriteAccess,
+    };
 
     // ======================================================
     //  STORAGE
@@ -222,7 +228,7 @@ mod GradeBook {
     // ======================================================
     #[cfg(test)]
     mod tests {
-        use super::GradeBook;
+        use super::GradeBookImpl;
         use starknet::testing::set_caller_address;
         use starknet::contract_address_const;
 
@@ -239,29 +245,29 @@ mod GradeBook {
 
         #[test]
         fn test_unregistered_returns_false() {
-            let state = GradeBook::contract_state_for_testing();
-            let result = GradeBook::GradeBookImpl::is_student_registered(@state, unknown());
+            let state = super::contract_state_for_testing();
+            let result = GradeBookImpl::is_student_registered(@state, unknown());
             assert(result == false, 'Should be false by default');
         }
 
         #[test]
         fn test_default_grade_is_zero() {
-            let state = GradeBook::contract_state_for_testing();
-            let grade = GradeBook::GradeBookImpl::get_grade(@state, unknown());
+            let state = super::contract_state_for_testing();
+            let grade = GradeBookImpl::get_grade(@state, unknown());
             assert(grade == 0_u8, 'Default grade should be 0');
         }
 
         #[test]
         fn test_register_writes_to_mappings() {
             set_caller_address(student_ali());
-            let mut state = GradeBook::contract_state_for_testing();
+            let mut state = super::contract_state_for_testing();
 
-            GradeBook::GradeBookImpl::register_student(ref state, 'Ali');
+            GradeBookImpl::register_student(ref state, 'Ali');
 
-            let name = GradeBook::GradeBookImpl::get_student_name(@state, student_ali());
+            let name = GradeBookImpl::get_student_name(@state, student_ali());
             assert(name == 'Ali', 'Name mapping incorrect');
 
-            let registered = GradeBook::GradeBookImpl::is_student_registered(@state, student_ali());
+            let registered = GradeBookImpl::is_student_registered(@state, student_ali());
             assert(registered == true, 'Registration mapping incorrect');
         }
 
@@ -269,19 +275,19 @@ mod GradeBook {
         fn test_two_students_have_separate_mapping_entries() {
             // Context switch simulation for Student Ali
             set_caller_address(student_ali());
-            let mut state = GradeBook::contract_state_for_testing();
-            GradeBook::GradeBookImpl::register_student(ref state, 'Ali');
+            let mut state = super::contract_state_for_testing();
+            GradeBookImpl::register_student(ref state, 'Ali');
 
             // Context switch simulation for Student Sara
             set_caller_address(student_sara());
-            GradeBook::GradeBookImpl::register_student(ref state, 'Sara');
+            GradeBookImpl::register_student(ref state, 'Sara');
 
-            let ali_name  = GradeBook::GradeBookImpl::get_student_name(@state, student_ali());
-            let sara_name = GradeBook::GradeBookImpl::get_student_name(@state, student_sara());
-            assert(ali_name  == 'Ali',  'Ali name wrong');
+            let ali_name = GradeBookImpl::get_student_name(@state, student_ali());
+            let sara_name = GradeBookImpl::get_student_name(@state, student_sara());
+            assert(ali_name == 'Ali', 'Ali name wrong');
             assert(sara_name == 'Sara', 'Sara name wrong');
 
-            let count = GradeBook::GradeBookImpl::get_total_students(@state);
+            let count = GradeBookImpl::get_total_students(@state);
             assert(count == 2_u32, 'Count should be 2');
         }
     }
